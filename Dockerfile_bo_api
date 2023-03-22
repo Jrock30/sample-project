@@ -1,0 +1,67 @@
+
+
+FROM openjdk11 as builder
+
+COPY gradlew .
+COPY build.gradle .
+COPY gradle gradle
+COPY settings.gradle .
+COPY gradle.properties .
+COPY project-bo-api     project-bo-api
+
+RUN chmod +x ./gradlew
+RUN #./gradlew -x test build || return 0
+RUN ./gradlew -x test :project-bo-api:build || return 0
+RUN ./gradlew -x test :project-bo-api:bootJar
+
+#RUN apt-get --no-cache add curl vim
+#RUN apk add curl
+
+
+##### Dockerizing
+FROM openjdk11
+LABEL maintainer=""
+
+
+#ARG SPRING_PROFILES_ACTIVE
+#RUN echo ${SPRING_PROFILES_ACTIVE}
+#ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+
+
+# Environment
+ENV TZ Asia/Seoul
+
+ENV HTTP_PROXY ""
+ENV HTTPS_PROXY ""
+ENV NO_PROXY ""
+
+#CMD java ${JAVA_OPTS} -jar project-bo-api.jar
+
+COPY --from=builder project-bo-api/build/libs/project-bo-api.jar project-bo-api.jar
+
+# timezone 변경
+ENV TZ=Asia/Seoul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# 보안검수 조치X
+# RUN rm /usr/bin/curl
+#RUN dpkg --purge wget openssh-client netcat-openbsd iputils-ping curl wget git telnet ftp net-tools svn vim
+RUN mkdir -p /usr/app/share
+RUN chmod -R 777 /usr/app/share
+
+
+#RUN groupadd -r sample && useradd -r -g  sample sample
+#RUN useradd --user-group --create-home --shell /bin/false sample
+#RUN chown -R sample:sample /usr/app/share
+#RUN chown sample:sample project-bo-api.jar
+#
+#USER sample
+
+EXPOSE 8090
+
+
+#ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}","-jar","project-bo-api.jar","--logging.path=/var/tmp/"]
+#ENTRYPOINT ["java","-jar","/project-bo-api.jar"]
+#CMD ["java","-jar","/project-bo-api.jar"]
+#RUN ["java","-jar","/project-bo-api.jar"]
+
+

@@ -1,0 +1,143 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    # 보안정책상 설정
+    session:
+      timeout: 30m
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+      force-response: true
+      force-request: true
+  tomcat:
+    accesslog:
+      enabled: true
+      pattern: "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\""
+      max-days: 180
+    uri-encoding: UTF-8
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: false
+    include-stacktrace: never
+  #    path: /error
+  compression:
+    enabled: true
+#  port: 443
+#    ssl:
+#      enabled: true
+#      enabled-protocols:
+#        - TLSv1.1
+#        - TLSv1.2
+#      key-store: "/etc/pki/tls/certs/demo/demo.p12"
+#      key-store-password: "demopass"
+#      key-store-type: "PKCS12"
+
+spring:
+  application:
+    name: project-FO-API
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    jdbc:
+      hikari:
+        connection-timeout: 10000
+        login-timeout: 10000
+        max-lifetime: 600000
+        minimum-idle: 5
+        maximum-pool-size: 5
+        pool-name: DanalPOOL_JDBC
+        data-source-properties:
+          cachePrepStmts: true
+          prepStmtCacheSize: 250
+          prepStmtCacheSqlLimit: 2048
+          useServerPrepStmts: true
+          useSSL: false
+          useUnicode: yes
+          characterEncoding: utf-8
+          autoReconnect: true
+          allowPublicKeyRetrieval: true
+          serverTimezone: Asia/Seoul
+          verifyServerCertificate: false
+          requireSSL: false
+    jpa:
+      hikari:
+        connection-timeout: 10000
+        login-timeout: 10000
+        max-lifetime: 600000
+        minimum-idle: 5
+        maximum-pool-size: 5
+        pool-name: DanalPOOL_JPA
+        data-source-properties:
+          cachePrepStmts: true
+          prepStmtCacheSize: 250
+          prepStmtCacheSqlLimit: 2048
+          useServerPrepStmts: true
+          useSSL: false
+          useUnicode: yes
+          characterEncoding: utf-8
+          autoReconnect: true
+          allowPublicKeyRetrieval: true
+          serverTimezone: Asia/Seoul
+          verifyServerCertificate: false
+          requireSSL: false
+  config:
+    import:
+      - application-vlt.yml
+  profiles:
+    group:
+      default:
+        - local
+      local:
+        - vault-local
+      dev:
+        - vault-dev
+      cbt:
+        - vault-cbt
+      prod:
+        - vault-prod
+    default: local
+  thymeleaf:
+    prefix: classpath:/template/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    check-template-location: true
+    cache: true
+  data:
+    mongodb:
+      auto-index-creation:
+    web:
+      pageable:
+        default-page-size: 10
+        one-indexed-parameters: true
+
+###############################################################################
+## JWT Setting
+###############################################################################
+jwt:
+  header: Authorization
+  # This token must be encoded using Base64 with mininum 88 Bits (you can type `echo 'secret-key'|base64` on your command line)
+  base64-secret: 123=
+  authorities-key: auth
+  # token is valid 24 hours 86400
+  access-token-validity-in-seconds: 3600000 # 1 hour
+  mail-token-validity-in-seconds: 86400000 # 1day # 180000 # 3 min
+  refresh-token-validity-in-seconds: 86400000 # 1 day
+  # valid 30 hours
+  token-validity-in-seconds-for-remember-me: 108000000
+  route:
+    authentication:
+      path: auth
+      refresh: refresh
+
+###############################################################################
+## Open API (Swagger 3.0)
+###############################################################################
+springdoc:
+  model-and-view-allowed: true
+  swagger-ui:
+    path: api-docs
+

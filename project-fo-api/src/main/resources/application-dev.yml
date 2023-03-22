@@ -1,0 +1,35 @@
+server:
+  port: 8090
+
+spring:
+  config:
+    activate:
+      on-profile:
+        - dev
+  datasource:
+    url: jdbc:log4jdbc:mysql://%s:%s/%s
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  redis:
+    host: dami-admin-dev.redis.onapple.net
+    port: 15207
+    password: damiresdis12#$
+
+###############################################################################
+## logging
+###############################################################################
+logging:
+  level:
+    root: info
+    com:
+      sample:
+        project: debug
+    jdbc:
+      sqlonly: off
+      sqltiming: debug
+      audit: off
+      resultset: off
+      resultsettable: debug
+      connection: off

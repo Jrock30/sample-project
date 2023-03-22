@@ -1,0 +1,249 @@
+//프로젝트의 모든 모듈에 공통
+plugins {
+    id "idea"
+    id "java"
+    id "java-library"
+    id "org.springframework.boot" version "${springBootVersion}"
+    id "io.spring.dependency-management" version "${springManagementVersion}"
+    id "io.freefair.lombok" version "${freefairLombokVersion}"
+    id "com.ewerk.gradle.plugins.querydsl" version "${queryDslVersion}"
+}
+
+allprojects {
+
+    apply plugin: 'idea'
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'io.freefair.lombok'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    group 'com.sample.project'
+//    version '1.0-SNAPSHOT'
+
+//    configurations {
+//        compileOnly {
+//            extendsFrom annotationProcessor
+//        }
+//        all {
+//            //logback과의 충돌 방지
+//            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+//        }
+//    }
+
+    repositories {
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven {
+            allowInsecureProtocol = true
+        }
+    }
+
+    // 자바 버전
+    sourceCompatibility = 11
+    targetCompatibility = 11
+
+    // 컴파일 인코딩 옵션
+    compileJava.options.encoding = "UTF-8"
+    compileTestJava.options.encoding = "UTF-8"
+
+//    task initSourceFolders {
+//        sourceSets*.java.srcDirs*.each {
+//            if( !it.exists() ) {
+//                it.mkdirs()
+//            }
+//        }
+//
+//        sourceSets*.resources.srcDirs*.each {
+//            if (!it.exists()) {
+//                it.mkdirs()
+//            }
+//        }
+//    }
+
+    // 컴파일 옵션지정
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        options.fork = true
+        options.forkOptions.executable = 'javac'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(Jar) {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    task processPackageResources(type: Copy) {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+}
+subprojects {
+
+    dependencies {
+
+        // 중복 의존성 발생 가능성으로 현재는 비워둠
+    }
+}
+
+
+project(":project-fo-api") {
+
+    bootRun {
+        sourceResources sourceSets.main
+        main = 'com.sample.project.projectFoApiApplication'
+        jvmArgs = [
+                "-server",
+                "-Xss256m",
+                "-Djava.net.preferIPv4Stack=true"
+        ]
+        if (project.hasProperty('args')) {
+            args project.args.split(',')
+        }
+    }
+
+    bootJar {
+        archiveFileName = 'project-fo-api.jar'
+        mainClass.set("com.sample.project.projectFoApiApplication")
+    }
+
+    apply plugin: 'com.ewerk.gradle.plugins.querydsl'
+
+    dependencies {
+
+//        spring boot starter
+        implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+        // spring doc
+        implementation "org.springdoc:springdoc-openapi-ui:${springdocVersion}"
+        implementation "org.springdoc:springdoc-openapi-data-rest:${springdocVersion}"
+        implementation "org.springdoc:springdoc-openapi-security:${springdocVersion}"
+
+        // SpringBoot Starter Dependency
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation "org.springframework.boot:spring-boot-starter-validation"
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+        implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+        // 자바 메일
+        implementation "org.springframework.boot:spring-boot-starter-mail"
+        implementation "org.springframework:spring-context-support"
+        implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
+
+
+//        Security
+//        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation "org.springframework.security:spring-security-web:${springSecurityVersion}"
+        implementation "org.springframework.security:spring-security-config:${springSecurityVersion}"
+
+//        jwt
+        implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+        implementation "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+        implementation "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+        // http
+        implementation("org.apache.httpcomponents:httpclient:4.5.13")
+
+        // mysql
+        runtimeOnly "mysql:mysql-connector-java:${mysqlConnectorVersion}"
+
+        // JPA
+        implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+
+        // QueryDSL
+        implementation "com.querydsl:querydsl-jpa:${queryDSLVersion}"
+        implementation "com.querydsl:querydsl-apt:${queryDSLVersion}"
+
+        // Redis
+        implementation "org.springframework.boot:spring-boot-starter-data-redis"
+
+        //excel
+//        implementation "org.apache.poi:poi:${poiVersion}"
+//        implementation "org.apache.poi:poi-ooxml:${poiVersion}"
+
+        // vault
+        implementation "org.springframework.vault:spring-vault-core:${vaultVersion}"
+
+        // log4j
+//        implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+        implementation "org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16"
+        implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4jVersion}"
+//        implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+
+//        implementation group: 'org.jetbrains', name: 'annotations', version: '23.0.0'
+//        implementation group: 'com.auth0', name: 'java-jwt', version: '4.1.0'
+
+        // lombok
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+
+        // configuration processor
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+        // test
+        testImplementation "org.springframework.boot:spring-boot-starter-test"
+        testImplementation "org.springframework.security:spring-security-test"
+
+        // 추가, 없으면 JUnit5 테스트 시 오류 발생
+        testImplementation 'org.junit.platform:junit-platform-launcher'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testImplementation 'org.junit.jupiter:junit-jupiter-params'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+        testImplementation 'org.assertj:assertj-core:3.23.1'
+
+
+        // poi
+        implementation group: 'org.apache.poi', name: 'poi', version: '5.2.2'
+        // poi-ooxml
+        implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.2'
+        // commons IO
+        implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
+        // commons-collections
+        implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+
+        // M1 에러처리
+//        implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
+
+        // html escape 처리
+        implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
+
+    }
+
+    test {
+        exclude '**/*' // 테스트 제외
+        useJUnitPlatform()
+    }
+
+    def querydslDir = "$buildDir/generated/querydsl"
+
+    querydsl {
+        jpa = true
+        querydslSourcesDir = querydslDir
+    }
+
+    sourceSets {
+        main.java.srcDir querydslDir
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+        querydsl.extendsFrom compileClasspath
+    }
+
+    compileQuerydsl {
+        options.annotationProcessorPath = configurations.querydsl
+    }
+
+    compileQuerydsl.doFirst {
+        if (file(querydslDir).exists()) {
+            delete(file(querydslDir))
+        }
+    }
+}
+
